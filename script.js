@@ -1,38 +1,65 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const cors = require("cors");
+// script.js
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("login");
+  const fileTransferSection = document.getElementById("file-transfer");
+  const logoutButton = document.getElementById("logout");
+  const fileUploadForm = document.getElementById("file-upload-form");
+  const loginFormDiv = document.getElementById("login-form");
 
-const app = express();
-const PORT = 3000;
+  // Handle login
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
-// Middleware
-app.use(cors());
-app.use(express.static("uploads"));
-
-// Configure Multer
-const storage = multer.diskStorage({
-    destination: "uploads/",
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-    },
-});
-
-const upload = multer({ storage });
-
-// Routes
-app.post("/upload", upload.single("file"), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send("No file uploaded.");
+    // Mock login validation
+    if (username === "user" && password === "password") {
+      alert("Login successful!");
+      loginFormDiv.classList.add("hidden");
+      fileTransferSection.classList.remove("hidden");
+    } else {
+      alert("Invalid username or password.");
     }
-    res.json({ filename: req.file.filename });
-});
+  });
 
-app.get("/files/:filename", (req, res) => {
-    const filepath = path.join(__dirname, "uploads", req.params.filename);
-    res.download(filepath);
-});
+  // Handle file upload and transfer
+  fileUploadForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById("file");
+    const file = fileInput.files[0];
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    if (!file) {
+      alert("Please select a file.");
+      return;
+    }
+
+    // Simulate file upload
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Mock file transfer (Replace URL with actual server endpoint)
+    fetch("https://example.com/api/upload", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert("File uploaded and transferred successfully!");
+        } else {
+          throw new Error("File transfer failed.");
+        }
+      })
+      .catch((error) => {
+        alert(error.message);
+      });
+  });
+
+  // Handle logout
+  logoutButton.addEventListener("click", () => {
+    loginFormDiv.classList.remove("hidden");
+    fileTransferSection.classList.add("hidden");
+    loginForm.reset();
+    fileUploadForm.reset();
+    alert("Logged out successfully.");
+  });
 });
