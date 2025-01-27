@@ -1,34 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Transfer App</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="container">
-    <div id="login-form">
-      <h2>Login</h2>
-      <form id="login">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <button type="submit">Login</button>
-      </form>
-    </div>
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-    <div id="file-transfer" class="hidden">
-      <h2>File Transfer</h2>
-      <form id="file-upload-form">
-        <label for="file">Select File:</label>
-        <input type="file" id="file" name="file" required>
-        <button type="submit">Upload and Transfer</button>
-      </form>
-      <button id="logout">Logout</button>
+const App = () => {
+  const [page, setPage] = useState('signIn');
+  const [authData, setAuthData] = useState({ username: '', password: '' });
+  const [folders, setFolders] = useState({});
+  const [currentFolder, setCurrentFolder] = useState(null);
+
+  const handleSignIn = (e) => {
+    e.preventDefault();
+    setPage('logIn');
+  };
+
+  const handleLogIn = (e) => {
+    e.preventDefault();
+    setPage('folderPage');
+  };
+
+  const handleCreateFolder = (folderName) => {
+    if (folderName && !folders[folderName]) {
+      setFolders({ ...folders, [folderName]: [] });
+    }
+  };
+
+  const handleDeleteFolder = (folderName) => {
+    const updatedFolders = { ...folders };
+    delete updatedFolders[folderName];
+    setFolders(updatedFolders);
+    setCurrentFolder(null);
+  };
+
+  const handleUploadFile = (fileName) => {
+    if (currentFolder && fileName) {
+      const updatedFolder = [...folders[currentFolder], fileName];
+      setFolders({ ...folders, [currentFolder]: updatedFolder });
+    }
+  };
+
+  const handleDeleteFile = (fileName) => {
+    if (currentFolder) {
+      const updatedFolder = folders[currentFolder].filter(file => file !== fileName);
+      setFolders({ ...folders, [currentFolder]: updatedFolder });
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+      {page === 'signIn' && (
+        <Card className="w-96">
+          <CardContent>
+            <h1 className="text-xl font-bold mb-4">Sign In</h1>
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <Input placeholder="Email" required />
+              <Input placeholder="Username" required />
+              <Input placeholder="Password" type="password" required />
+              <Button type="submit" className="w-full">Sign In</Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {page === 'logIn' && (
+        <Card className="w-96">
+          <CardContent>
+            <h1 className="text-xl font-bold mb-4">Log In</h1>
+            <form onSubmit={handleLogIn} className="space-y-4">
+              <Input placeholder="Username" required onChange={(e) => setAuthData({ ...authData, username: e.target.value })} />
+              <Input placeholder="Password" type="password" required onChange={(e) => setAuthData({ ...authData, password: e.target.value })} />
+              <Button type="submit" className="w-full">Log In</Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {page === 'folderPage' && (
+        <Card className="w-96">
+          <CardContent>
+            <h1 className="text-xl font-bold mb-4">Manage Folders</h1>
+            <Input placeholder="Folder Name" id="folderName" className="mb-2" />
+            <Button className="w-full mb-2" onClick={() => handleCreateFolder(document.getElementById('folderName').value)}>Create Folder</Button>
+            {Object.keys(folders).map(folder => (
+              <div key={folder} className="flex justify-between items-center mb-2">
+                <span>{folder}</span>
+                <Button variant="destructive" onClick={() => handleDeleteFolder(folder)}>Delete</Button>
+                <Button onClick={() => setCurrentFolder(folder)}>Open</Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {page === 'folderPage' && currentFolder && (
+        <Card className="w-96 mt-4">
+          <CardContent>
+            <h2 className="text-xl font-bold mb-4">Folder: {currentFolder}</h2>
+            <Input placeholder="File Name" id="fileName" className="mb-2" />
+            <Button className="w-full mb-2" onClick={() => handleUploadFile(document.getElementById('fileName').value)}>Upload File</Button>
+            {folders[currentFolder]?.map(file => (
+              <div key={file} className="flex justify-between items-center mb-2">
+                <span>{file}</span>
+                <Button variant="destructive" onClick={() => handleDeleteFile(file)}>Delete</Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>
+  );
+};
+
+export default App;
